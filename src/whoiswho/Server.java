@@ -109,7 +109,8 @@ public class Server {
             this.names=names;
             this.socket = socket;
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()))
+            writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+
 
         }
 
