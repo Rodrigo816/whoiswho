@@ -1,9 +1,6 @@
 package whoiswho;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -15,7 +12,7 @@ import java.util.concurrent.Executors;
 public class Server {
     final int PORTNUMBER = 5555;
     final int MAXREQUESTS = 10000;
-    private List<Player> arrayThePlayers = Collections.synchronizedList(new ArrayList());
+    private List<Player> playerList = Collections.synchronizedList(new ArrayList());
     private String[] names = {"Angelo", "Brandão","Luís F.","Davide",
                               "André", "César", "João S.","Amélia",
                               "João Martins","Sofia","Rodrigo B.",
@@ -23,9 +20,10 @@ public class Server {
                               "Leandro","Soraia","Lobão","Rodrigo D.","Dário"};
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Server myServer = new Server();
         myServer.start();
+
     }
 
 
@@ -45,8 +43,13 @@ public class Server {
             clientSocket = serverSocket.accept();
             RegisterPlayer registerPlayer = new RegisterPlayer(clientSocket);
             fixedPool.submit(registerPlayer);
+            if(playerList.size()==2){
+                GameStart gameStart = new GameStart(playerList.get(0),playerList.get(1));
 
-            // vereficar sem tens dois player e criar navo thread
+
+                fixedPool.submit(gameStart);
+            }
+
 
 
 
@@ -61,6 +64,7 @@ public class Server {
         private String temporyName;
 
         RegisterPlayer(Socket clientSocket) throws IOException {
+
             this.clientSocket=clientSocket;
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -73,11 +77,20 @@ public class Server {
 
             out.println("Please enter your name NIGGAAAAAA:");
             while (!clientSocket.isClosed() && temporyName==null){
-                mensageFromClient = in.readLine();
-                temporyName = mensageFromClient;
+                try {
+                    mensageFromClient = in.readLine();
+                    temporyName = mensageFromClient;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
 
             }
-            arrayThePlayers.add(new Player(temporyName,names));
+            try {
+                playerList.add(new Player(temporyName,names,clientSocket));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -86,18 +99,43 @@ public class Server {
         private String name;
         private String[] names;
         private String nameHolder;
+        private BufferedReader reader;
+        private PrintWriter writer;
 
-        public Player(String name, String[] names){
+        private Socket socket;
+
+        public Player(String name, String[] names,Socket socket) throws IOException {
             this.name=name;
             this.names=names;
+            this.socket = socket;
+            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()))
+
         }
+
+
+
+
     }
 
     // GameStart
     public class GameStart implements Runnable{
 
+        private final Player player1;
+        private final Player player2;
+
+        public GameStart(Player p1, Player p2){
+            this.player1 = p1;
+            this.player2 = p2;
+
+        }
         @Override
         public void run() {
+          player1.writer.println("Hello stranger, WTF you doin here ? go home!");
+          player2.writer.println("You arePlayer 2");
+
+
+
 
         }
     }
