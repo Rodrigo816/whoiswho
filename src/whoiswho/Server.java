@@ -98,6 +98,7 @@ public class Server {
                     }
                     writer.println("Please pick your character's number:");
                     String choice = reader.readLine();
+
                     int number = Integer.parseInt(choice);
                     nameHolder = characters[number-1].getName();
                     writer.println("You picked " + nameHolder + ".");
@@ -132,6 +133,15 @@ public class Server {
         public void run() {
             fixedPool.submit(player1);
             fixedPool.submit(player2);
+            while(player1.init == false || player2.init==false){
+                System.out.println("waiting for players");
+
+              }
+              if(player1.init== true && player2.init == true) {
+                  System.out.println("ENTROU E FAZ COIAS FANTASTICAS");
+              }
+            }
+
         }
     }
-}
+
