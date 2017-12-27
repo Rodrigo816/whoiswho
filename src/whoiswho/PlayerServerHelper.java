@@ -28,14 +28,14 @@ public class PlayerServerHelper implements Runnable {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         out.println("Insert your name: ");
         String messageFromClient;
 
         try {
             messageFromClient = in.readLine();
             name = messageFromClient;
-
+            System.out.println(messageFromClient);
 
             out.println("Characters:");
             for (int i = 0; i < characters.length; i++) {
@@ -43,8 +43,10 @@ public class PlayerServerHelper implements Runnable {
             }
 
             int number = chooseCharacter();
+
             nameHolder = characters[number - 1].getName();
             out.println("You picked " + nameHolder + ".");
+            out.println("************************\n*      *       *       *\n*      *\n");
             init = true;
             String mensage;
             while (true){
@@ -79,5 +81,9 @@ public class PlayerServerHelper implements Runnable {
     }
     public boolean isInit() {
         return init;
+    }
+
+    public PrintWriter getOut() {
+        return out;
     }
 }

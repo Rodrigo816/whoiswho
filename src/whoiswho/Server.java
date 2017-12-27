@@ -39,7 +39,8 @@ public class Server {
             String temporaryName = "player" + counter;
             PlayerServerHelper aux = new PlayerServerHelper(temporaryName, clientSocket);
             playerList.offer(aux);
-            System.out.println("Waiting for your opponent...");
+            aux.getOut().println("Waiting for your opponent...");
+
 
             synchronized (playerList) {
                 if (playerList.size() >= 2) {
