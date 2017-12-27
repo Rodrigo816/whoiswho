@@ -14,7 +14,6 @@ public class PlayerServerHelper implements Runnable {
     private boolean init = false;
     private BufferedReader in;
     private PrintWriter out;
-    //List<Server.Player> players;
     Server.GameStart gameStart;
     private Socket socket;
 
@@ -27,10 +26,6 @@ public class PlayerServerHelper implements Runnable {
             characters[i] = new Characters(names[i]);
         }
     }
-
-
-
-
 
     @Override
     public void run() {
@@ -54,29 +49,8 @@ public class PlayerServerHelper implements Runnable {
             String mensage;
             while (true){
                 mensage = in.readLine();
-
-                if (mensage.equals("/ask")){
-                    out.println("/help  -> Show all the comands available\n");
-                    out.println("/exit  -> Exit from the chat\n");
-                    out.println("/w <toSendName> <mensage> -> Whisper to someone on the chat\n");
-                    continue;
-                }
-                    /*if (mensage.equals("/w")){
-                        String toSendName;
-
-
-                        for (int i = 0; i < list.size(); i++) {
-                            //list.r
-                            list.get(i).send(mensageFromClient);
-                        }
-                    }*/
-
-
                 gameStart.sendToAll(name + ": "+ mensage);
             }
-
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -93,8 +67,6 @@ public class PlayerServerHelper implements Runnable {
                 out.println("Please insert a valid character");
             }
         }
-
-
         return number;
     }
 
@@ -102,10 +74,10 @@ public class PlayerServerHelper implements Runnable {
         this.gameStart = gameStart;
     }
 
-    public boolean isInit() {
-        return init;
-    }
     public void send(String responseLine) {
         out.println(responseLine);
+    }
+    public boolean isInit() {
+        return init;
     }
 }

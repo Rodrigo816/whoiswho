@@ -22,13 +22,10 @@ public class Server {
 
     }
 
-
     public void start() throws IOException {
-
         ServerSocket serverSocket;
         Socket clientSocket;
         int counter = 0;
-
 
         serverSocket = new ServerSocket(PORTNUMBER);
         if (serverSocket.isBound()) {
@@ -42,7 +39,7 @@ public class Server {
             String temporaryName = "player" + counter;
             PlayerServerHelper aux = new PlayerServerHelper(temporaryName, clientSocket);
             playerList.offer(aux);
-            System.out.println(temporaryName);
+            System.out.println("Waiting for your opponent...");
 
             synchronized (playerList) {
                 if (playerList.size() >= 2) {
@@ -73,6 +70,7 @@ public class Server {
 
         @Override
         public void run() {
+            System.out.println("Game Started");
             for (int i = 0; i < players.size(); i++) {
                 players.get(i).setGameStart(this);
                 fixedPool.submit(players.get(i));
