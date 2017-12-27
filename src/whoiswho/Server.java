@@ -1,8 +1,15 @@
 package whoiswho;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.*;
 
 public class Server {
@@ -70,6 +77,15 @@ public class Server {
         private BufferedReader reader;
         private PrintWriter writer;
         private Socket socket;
+        private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+        public void addPropertyChangeListener(PropertyChangeListener listener) {
+            this.pcs.addPropertyChangeListener(listener);
+        }
+
+        public void removePropertyChangeListener(PropertyChangeListener listener) {
+            this.pcs.removePropertyChangeListener(listener);
+        }
 
         public Player(String name, Socket socket) throws IOException {
             this.name = name;
@@ -83,7 +99,7 @@ public class Server {
 
 
         @Override
-        public void run() {
+        public synchronized void run() {
             writer.println("Insert your name: ");
             String messageFromClient;
 
@@ -114,10 +130,13 @@ public class Server {
         public boolean isInit() {
             return init;
         }
+
+
+
     }
 
     // GameStart
-    public class GameStart implements Runnable{
+    public class GameStart implements Runnable, PropertyChangeListener{
 
         private final Player player1;
         private final Player player2;
@@ -132,6 +151,16 @@ public class Server {
         public void run() {
             fixedPool.submit(player1);
             fixedPool.submit(player2);
+
+
+
+        }
+
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            System.out.println("entrou");
+            System.out.println(evt.getPropertyName());
+
         }
     }
 }
