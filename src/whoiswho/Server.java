@@ -96,10 +96,8 @@ public class Server {
                     for (int i = 0; i < characters.length; i++) {
                         writer.println((i+1) + ": " + characters[i].getName());
                     }
-                    writer.println("Please pick your character's number:");
-                    String choice = reader.readLine();
 
-                    int number = Integer.parseInt(choice);
+                    int number = chooseCharacter();
                     nameHolder = characters[number-1].getName();
                     writer.println("You picked " + nameHolder + ".");
                     init = true;
@@ -109,6 +107,21 @@ public class Server {
                 e.printStackTrace();
             }
 
+        }
+
+        public int chooseCharacter () throws IOException {
+            int number =0;
+            while (number <1 || number> 25){
+                writer.println("Please pick your character's number:");
+                String choice = reader.readLine();
+                number = Integer.parseInt(choice);
+                if(number >25 || number < 1){
+                    writer.println("Please insert a valid character");
+                }
+            }
+
+
+            return number;
         }
 
 
