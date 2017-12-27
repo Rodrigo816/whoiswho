@@ -111,11 +111,11 @@ public class Server {
 
         public int chooseCharacter () throws IOException {
             int number =0;
-            while (number <1 || number> 25){
+            while (number <1 || number> names.length-1){
                 writer.println("Please pick your character's number:");
                 String choice = reader.readLine();
                 number = Integer.parseInt(choice);
-                if(number >25 || number < 1){
+                if(number >names.length-1 || number < 1){
                     writer.println("Please insert a valid character");
                 }
             }
@@ -147,7 +147,7 @@ public class Server {
             fixedPool.submit(player1);
             fixedPool.submit(player2);
             while(player1.init == false || player2.init==false){
-                System.out.println("waiting for players");
+                System.out.println("");
 
               }
               if(player1.init== true && player2.init == true) {
