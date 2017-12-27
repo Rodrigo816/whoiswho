@@ -3,22 +3,15 @@ package whoiswho;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class Server {
-    final int PORTNUMBER = 5555;
-    final int MAXREQUESTS = 10000;
-    private List<Player> playerList = Collections.synchronizedList(new ArrayList());
-    private String[] names = {"Angelo", "Brandão","Luís F.","Davide",
-                              "André", "César", "João S.","Amélia",
-                              "João Martins","Sofia","Rodrigo B.",
-                              "Renata","Luís S.","Toste","Francisco",
-                              "Leandro","Soraia","Lobão","Rodrigo D.","Dário"};
+    private final int PORTNUMBER = 5555;
+    private final int MAXREQUESTS = 10000;
+    ExecutorService fixedPool = Executors.newFixedThreadPool(MAXREQUESTS);
 
+
+    private LinkedBlockingQueue<Player> playerList = new LinkedBlockingQueue<>();
 
     public static void main(String[] args) throws IOException {
         Server myServer = new Server();
@@ -31,92 +24,96 @@ public class Server {
 
         ServerSocket serverSocket;
         Socket clientSocket;
+        int counter = 0;
 
 
         serverSocket = new ServerSocket(PORTNUMBER);
         if (serverSocket.isBound()) {
             System.out.println("Server is ready!");
         }
-        ExecutorService fixedPool = Executors.newFixedThreadPool(MAXREQUESTS);
+
+
 
         while (serverSocket.isBound()) {
+
             clientSocket = serverSocket.accept();
-            RegisterPlayer registerPlayer = new RegisterPlayer(clientSocket);
-            fixedPool.submit(registerPlayer);
-            if(playerList.size()==2){
-                GameStart gameStart = new GameStart(playerList.get(0),playerList.get(1));
+            counter++;
+            String temporaryName = "player"+counter;
+            Player aux = new Player(temporaryName, clientSocket);
+            playerList.offer(aux);
+            System.out.println(temporaryName);
 
+            synchronized (playerList) {
+                if (playerList.size() >= 2) {
+                    GameStart gameStart = new GameStart(playerList.poll(), playerList.poll());
+                    fixedPool.submit(gameStart);
 
-                fixedPool.submit(gameStart);
-            }
-
-
-
-
-        }
-    }
-
-    // Register the player class
-    public class RegisterPlayer implements Runnable{
-        private Socket clientSocket;
-        private BufferedReader in;
-        private PrintWriter out;
-        private String temporyName;
-
-        RegisterPlayer(Socket clientSocket) throws IOException {
-
-            this.clientSocket=clientSocket;
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-        }
-
-        @Override
-        public void run() {
-            System.out.println("Connection successful from IP: " + clientSocket.getLocalAddress().getHostAddress() + " Port: "+ clientSocket.getLocalPort());
-            String mensageFromClient;
-
-            out.println("Please enter your name NIGGAAAAAA:");
-            while (!clientSocket.isClosed() && temporyName==null){
-                try {
-                    mensageFromClient = in.readLine();
-                    temporyName = mensageFromClient;
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
 
+            }
 
-            }
-            try {
-                playerList.add(new Player(temporyName,names,clientSocket));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+         }
+
     }
 
     // Player helper
-    private class Player {
+    private class Player implements Runnable{
         private String name;
-        private String[] names;
+        private String[] names = {"Angelo", "Brandão","Luís F","Davide", "André",
+                                "César", "João S","Amélia", "João M","Sofia",
+                                "Rodrigo B", "Renata","Luís S","Toste","Francisco",
+                                "Leandro","Soraia","Lobão","Rodrigo D","Dário",
+                                "Ferrão", "Catarina", "Sérgio", "Audrey", "Faustino"};
+        private Characters[] characters = new Characters[names.length];
         private String nameHolder;
+        private boolean init = false;
         private BufferedReader reader;
         private PrintWriter writer;
-
         private Socket socket;
 
-        public Player(String name, String[] names,Socket socket) throws IOException {
-            this.name=name;
-            this.names=names;
+        public Player(String name, Socket socket) throws IOException {
+            this.name = name;
             this.socket = socket;
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+            writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            for (int i = 0; i < characters.length; i++) {
+                characters[i] = new Characters(names[i]);
+            }
+        }
 
+
+        @Override
+        public void run() {
+            writer.println("Insert your name: ");
+            String messageFromClient;
+
+            try {
+                messageFromClient = reader.readLine();
+                name = messageFromClient;
+
+
+                    writer.println("Characters:");
+                    for (int i = 0; i < characters.length; i++) {
+                        writer.println((i+1) + ": " + characters[i].getName());
+                    }
+                    writer.println("Please pick your character's number:");
+                    String choice = reader.readLine();
+                    int number = Integer.parseInt(choice);
+                    nameHolder = characters[number-1].getName();
+                    writer.println("You picked " + nameHolder + ".");
+                    init = true;
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
         }
 
 
-
-
+        public boolean isInit() {
+            return init;
+        }
     }
 
     // GameStart
@@ -130,14 +127,11 @@ public class Server {
             this.player2 = p2;
 
         }
+
         @Override
         public void run() {
-          player1.writer.println("Hello stranger, WTF you doin here ? go home!");
-          player2.writer.println("You arePlayer 2");
-
-
-
-
+            fixedPool.submit(player1);
+            fixedPool.submit(player2);
         }
     }
 }
