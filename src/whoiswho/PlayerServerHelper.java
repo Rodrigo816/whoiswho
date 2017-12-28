@@ -48,11 +48,17 @@ public class PlayerServerHelper implements Runnable {
             out.println("You picked " + nameHolder + ".");
             out.println("************************\n*      *       *       *\n*      *       *       *\n");
             init = true;
+
+
             String mensage;
             while (true){
-                mensage = in.readLine();
-                gameStart.sendToAll(name + ": "+ mensage);
+
+                if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
+                    mensage = in.readLine();
+                    gameStart.sendToAll(name + ": "+ mensage);
+                }
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -13,7 +13,6 @@ public class Server {
     private final int MAXREQUESTS = 10000;
     ExecutorService fixedPool = Executors.newFixedThreadPool(MAXREQUESTS);
 
-
     private LinkedBlockingQueue<PlayerServerHelper> playerList = new LinkedBlockingQueue<>();
 
     public static void main(String[] args) throws IOException {
@@ -48,11 +47,8 @@ public class Server {
                     fixedPool.submit(gameStart);
 
                 }
-
             }
-
         }
-
     }
 
     /*
