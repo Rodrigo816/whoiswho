@@ -16,6 +16,7 @@ public class PlayerServerHelper implements Runnable {
     private PrintWriter out;
     Server.GameStart gameStart;
     private Socket socket;
+    private int currentTurn=0;
 
     public PlayerServerHelper(String name, Socket socket) throws IOException {
         this.name = name;
@@ -49,12 +50,40 @@ public class PlayerServerHelper implements Runnable {
             out.println("************************\n*      *       *       *\n*      *       *       *\n");
             init = true;
 
-
+            String[] mensageSplit;
             String mensage;
+            String fristWord;
             while (true){
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
                     mensage = in.readLine();
+                    // if your replace this two lines with a single line regex I will be happy :)
+                    mensageSplit= mensage.split(" ");
+                    fristWord = mensageSplit[0];
+
+                    if (fristWord.toUpperCase().equals("/ASK")){
+                        if (currentTurn!=1){
+                            send("Bitch please don't cheat its not your turn");
+                            continue;
+                        }
+
+                        gameStart.sendToAll(name + ": "+ mensage);
+                        currentTurn=3;
+                        continue;
+
+                    }
+                    if (fristWord.toUpperCase().equals("/YES") || mensage.toUpperCase().equals("/NO") || mensage.toUpperCase().equals("/DON'T KNOW")){
+                        if (currentTurn!=0){
+                            send("NIGAA NOOO CHEAT");
+                            continue;
+                        }
+                        currentTurn = 1;
+                        int currentIndexPlayer = gameStart.players.indexOf(this);
+                        gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(0);
+
+                        gameStart.sendToAll(name + ": "+ mensage);
+                        continue;
+                    }
                     gameStart.sendToAll(name + ": "+ mensage);
                 }
             }
@@ -91,5 +120,8 @@ public class PlayerServerHelper implements Runnable {
 
     public PrintWriter getOut() {
         return out;
+    }
+    public void setCurrentTurn(int currentTurn) {
+        this.currentTurn = currentTurn;
     }
 }
