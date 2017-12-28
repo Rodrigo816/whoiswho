@@ -14,11 +14,12 @@ public class Client {
     public static void main(String[] args) {
         Client client = new Client();
         client.connect();
-
     }
 
     public void connect () {
+
         Socket clientSocket;
+
         try {
 
             clientSocket = new Socket(HOSTNAME, PORTNUMBER);
@@ -28,7 +29,6 @@ public class Client {
 
             while (clientSocket.isConnected()){
                 System.out.println(in.readLine());
-
             }
 
             clientSocket.close();
@@ -39,11 +39,11 @@ public class Client {
     }
 
     public class ClientHelper implements Runnable {
+
         private Socket clientSocket;
 
         ClientHelper(Socket clientSocket){
             this.clientSocket=clientSocket;
-
         }
 
         @Override
@@ -61,8 +61,4 @@ public class Client {
             }
         }
     }
-
-
-
-
 }

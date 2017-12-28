@@ -1,6 +1,8 @@
 package whoiswho;
 import java.io.*;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PlayerServerHelper implements Runnable {
     private String name;
@@ -30,13 +32,13 @@ public class PlayerServerHelper implements Runnable {
 
     @Override
     public synchronized void run() {
+
         out.println("Insert your name: ");
-        String messageFromClient;
 
         try {
-            messageFromClient = in.readLine();
-            name = messageFromClient;
-            System.out.println(messageFromClient);
+
+            name = in.readLine();
+            System.out.println(name);
 
             out.println("Characters:");
             for (int i = 0; i < characters.length; i++) {
@@ -50,29 +52,29 @@ public class PlayerServerHelper implements Runnable {
             out.println("************************\n*      *       *       *\n*      *       *       *\n");
             init = true;
 
-            String[] mensageSplit;
-            String mensage;
-            String fristWord;
+            String[] messageSplit;
+            String message;
+            String firstWord;
             while (true){
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
-                    mensage = in.readLine();
+                    message = in.readLine();
                     // if your replace this two lines with a single line regex I will be happy :)
-                    mensageSplit= mensage.split(" ");
-                    fristWord = mensageSplit[0];
+                    messageSplit= message.split(" ");
+                    firstWord = messageSplit[0];
 
-                    if (fristWord.toUpperCase().equals("/ASK")){
+                    if (firstWord.toUpperCase().equals("/ASK")){
                         if (currentTurn!=1){
                             send("Bitch please don't cheat its not your turn");
                             continue;
                         }
 
-                        gameStart.sendToAll(name + ": "+ mensage);
+                        gameStart.sendToAll(name + ": "+ message);
                         currentTurn=3;
                         continue;
 
                     }
-                    if (fristWord.toUpperCase().equals("/YES") || mensage.toUpperCase().equals("/NO") || mensage.toUpperCase().equals("/DON'T KNOW")){
+                    if (firstWord.toUpperCase().equals("/YES") || message.toUpperCase().equals("/NO") || message.toUpperCase().equals("/DON\'T KNOW")){
                         if (currentTurn!=0){
                             send("NIGAA NOOO CHEAT");
                             continue;
@@ -81,10 +83,10 @@ public class PlayerServerHelper implements Runnable {
                         int currentIndexPlayer = gameStart.players.indexOf(this);
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(0);
 
-                        gameStart.sendToAll(name + ": "+ mensage);
+                        gameStart.sendToAll(name + ": "+ message);
                         continue;
                     }
-                    gameStart.sendToAll(name + ": "+ mensage);
+                    gameStart.sendToAll(name + ": "+ message);
                 }
             }
 
@@ -98,7 +100,14 @@ public class PlayerServerHelper implements Runnable {
         while (number < 1 || number > names.length) {
             out.println("Please pick your character's number:");
             String choice = in.readLine();
-            number = Integer.parseInt(choice);
+            Pattern p = Pattern.compile("[0-9]+"); //only accept numbers
+            Matcher m = p.matcher(choice);
+            if (m.matches()) {
+                number = Integer.parseInt(choice);
+            } else {
+                number = 0;  //if user insert non digit characters ask to pick number again
+            }
+
             if (number > names.length || number < 1) {
                 out.println("Please insert a valid character");
             }
