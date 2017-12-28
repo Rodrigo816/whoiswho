@@ -55,7 +55,7 @@ public class PlayerServerHelper implements Runnable {
             String[] messageSplit;
             String message;
             String firstWord;
-            String secondWord=null;
+            String secondWord="";
 
 
             while (true){
@@ -67,7 +67,10 @@ public class PlayerServerHelper implements Runnable {
                     messageSplit= message.split(" ");
                     firstWord = messageSplit[0];
                     if (messageSplit.length > 1){
-                        secondWord = messageSplit[1];
+                        secondWord = "";
+                        for (int i = 1; i <messageSplit.length ; i++) {
+                            secondWord += " " + messageSplit[i];
+                        }
                     }
                     System.out.println(firstWord + "  ");
                     System.out.println(secondWord + "  ");
@@ -101,10 +104,14 @@ public class PlayerServerHelper implements Runnable {
                             send("Wrong comand please use /try fallowed by the name");
                             continue;
                         }
-                        if (secondWord.toUpperCase().equals(nameHolder.toUpperCase())){
+
+
+                        if (secondWord.toUpperCase().equals(" "+gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
                             send("Your guess "+secondWord+ "is correct.\n Congratulations "+name+ "You won the game.");
                             gameStart.players.get(currentIndexPlayer==1?0:1).send("Your opponent" + name + " tryed " +secondWord + ". You have lost the game.");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
+                                gameStart.players.get(i).in.close();
+                                gameStart.players.get(i).out.close();
                                 gameStart.players.get(i).socket.close();
                             }
                             break;
@@ -160,4 +167,8 @@ public class PlayerServerHelper implements Runnable {
     public void setCurrentTurn(int currentTurn) {
         this.currentTurn = currentTurn;
     }
+    public String getNameHolder() {
+        return nameHolder;
+    }
+
 }
