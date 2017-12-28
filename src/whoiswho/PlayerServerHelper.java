@@ -55,14 +55,22 @@ public class PlayerServerHelper implements Runnable {
             String[] messageSplit;
             String message;
             String firstWord;
+            String secondWord=null;
+
+
             while (true){
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
                     message = in.readLine();
+                    int currentIndexPlayer = gameStart.players.indexOf(this);
                     // if your replace this two lines with a single line regex I will be happy :)
                     messageSplit= message.split(" ");
                     firstWord = messageSplit[0];
-
+                    if (messageSplit.length > 1){
+                        secondWord = messageSplit[1];
+                    }
+                    System.out.println(firstWord + "  ");
+                    System.out.println(secondWord + "  ");
                     if (firstWord.toUpperCase().equals("/ASK")){
                         if (currentTurn!=1){
                             send("Bitch please don't cheat its not your turn");
@@ -80,11 +88,30 @@ public class PlayerServerHelper implements Runnable {
                             continue;
                         }
                         currentTurn = 1;
-                        int currentIndexPlayer = gameStart.players.indexOf(this);
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(0);
-
                         gameStart.sendToAll(name + ": "+ message);
                         continue;
+                    }
+                    if (firstWord.toUpperCase().equals("/TRY")) {
+                        if (currentTurn!=1){
+                            send("Bitch please don't cheat its not your turn");
+                            continue;
+                        }
+                        if (secondWord == null){
+                            send("Wrong comand please use /try fallowed by the name");
+                            continue;
+                        }
+                        if (secondWord.toUpperCase().equals(nameHolder.toUpperCase())){
+                            send("Your guess "+secondWord+ "is correct.\n Congratulations "+name+ "You won the game.");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("Your opponent" + name + " tryed " +secondWord + ". You have lost the game.");
+                            for (int i = 0; i <gameStart.players.size() ; i++) {
+                                gameStart.players.get(i).socket.close();
+                            }
+                            break;
+                        }
+                        send("Your guess "+secondWord+ " is incorrect. Muahaha keep trying.");
+                        gameStart.players.get(currentIndexPlayer==1?0:1).send("Your opponent" + name + " tryed " +secondWord + " and failed. Its your turn now");
+                        currentTurn=3;
                     }
                     gameStart.sendToAll(name + ": "+ message);
                 }
