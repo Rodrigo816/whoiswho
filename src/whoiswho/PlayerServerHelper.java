@@ -4,7 +4,7 @@ import java.net.Socket;
 
 public class PlayerServerHelper implements Runnable {
     private String name;
-    private String[] names = {"Angelo", "Brandão", "Luís F", "Davide", "André",
+    private String[] names = {"Ângelo", "Brandão", "Luís F", "Davide", "André",
             "César", "João S", "Amélia", "João M", "Sofia",
             "Rodrigo B", "Renata", "Luís S", "Toste", "Francisco",
             "Leandro", "Soraia", "Lobão", "Rodrigo D", "Dário",
@@ -46,7 +46,7 @@ public class PlayerServerHelper implements Runnable {
 
             nameHolder = characters[number - 1].getName();
             out.println("You picked " + nameHolder + ".");
-            out.println("************************\n*      *       *       *\n*      *\n");
+            out.println("************************\n*      *       *       *\n*      *       *       *\n");
             init = true;
             String mensage;
             while (true){
@@ -56,16 +56,15 @@ public class PlayerServerHelper implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public int chooseCharacter() throws IOException {
         int number = 0;
-        while (number < 1 || number > names.length - 1) {
+        while (number < 1 || number > names.length) {
             out.println("Please pick your character's number:");
             String choice = in.readLine();
             number = Integer.parseInt(choice);
-            if (number > names.length - 1 || number < 1) {
+            if (number > names.length || number < 1) {
                 out.println("Please insert a valid character");
             }
         }
@@ -79,6 +78,7 @@ public class PlayerServerHelper implements Runnable {
     public void send(String responseLine) {
         out.println(responseLine);
     }
+
     public boolean isInit() {
         return init;
     }

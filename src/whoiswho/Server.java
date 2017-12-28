@@ -61,7 +61,7 @@ public class Server {
     -----------------------------------
      */
     public class GameStart implements Runnable {
-        List<PlayerServerHelper> players = Collections.synchronizedList(new ArrayList());
+        List<PlayerServerHelper> players = Collections.synchronizedList(new ArrayList<>());
 
         public GameStart(PlayerServerHelper p1, PlayerServerHelper p2) {
             players.add(p1);
@@ -77,10 +77,10 @@ public class Server {
                 fixedPool.submit(players.get(i));
             }
         }
-        public void sendToAll(String mensageFromClient) {
+        public void sendToAll(String messageFromClient) {
             synchronized (players) {
                 for (int i = 0; i < players.size(); i++) {
-                    players.get(i).send(mensageFromClient);
+                    players.get(i).send(messageFromClient);
                 }
             }
         }

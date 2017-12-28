@@ -8,8 +8,8 @@ import java.util.concurrent.Executors;
 
 public class Client {
 
-    final int PORTNUMBER = 5555;
-    final String HOSTNAME = "localhost";
+    private final int PORTNUMBER = 5555;
+    private final String HOSTNAME = "localhost";
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -56,8 +56,8 @@ public class Client {
                 e.printStackTrace();
             }
             while (!clientSocket.isClosed()){
-                String myline = myScanner.nextLine();
-                out.println(myline);
+                String myLine = myScanner.nextLine();
+                out.println(myLine);
             }
         }
     }
