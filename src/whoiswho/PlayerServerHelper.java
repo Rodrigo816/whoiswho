@@ -109,6 +109,18 @@ public class PlayerServerHelper implements Runnable {
                         showBoard();
                         continue;
                     }
+                    if (firstWordSplit[0].toUpperCase().equals("/REMOVE") && currentTurn==CurrentTurn.ACTIVE){
+                        if (firstWordSplit.length == 1){
+                            send("Wrong command please use /remove followed by the name");
+                            continue;
+                        }
+                        for (int i = 0; i <characters.length ; i++) {
+                            if (firstWordSplit[1].equals(characters[i].getName())){
+                                setBoard();
+
+                            }
+                        }
+                    }
                     if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
                         if (currentTurn!=CurrentTurn.ACTIVE){
                             send("[Server:] Wait for your turn");
