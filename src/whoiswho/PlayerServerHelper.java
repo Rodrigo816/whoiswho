@@ -115,9 +115,8 @@ public class PlayerServerHelper implements Runnable {
                             continue;
                         }
                         for (int i = 0; i <characters.length ; i++) {
-                            if (firstWordSplit[1].equals(characters[i].getName())){
-                                setBoard();
-
+                            if (firstWordSplit[1].equals(characters[i].getName()) || Integer.parseInt(firstWordSplit[1]) == characters[i].getId()){
+                                setBoard(characters[i].getId());
                             }
                         }
                     }
@@ -238,6 +237,13 @@ public class PlayerServerHelper implements Runnable {
     }
 
     public void setBoard(int number){
+        for(int i=0 ; i<boardGame.length ; i++){
+            for(int j=0 ; j<boardGame.length ; j++){
+                if (boardGame[i][j].getId()==number){
+
+                }
+            }
+        }
 
     }
 
