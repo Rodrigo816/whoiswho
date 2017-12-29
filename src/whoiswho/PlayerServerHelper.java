@@ -28,6 +28,8 @@ public class PlayerServerHelper implements Runnable {
     private Socket socket;
     public enum CurrentTurn { ACTIVE, INACTIVE, WAITING}
     private CurrentTurn currentTurn = CurrentTurn.WAITING;
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_RESET = "\u001B[0m";
 
 
     public PlayerServerHelper(String name, Socket socket) throws IOException {
@@ -48,6 +50,7 @@ public class PlayerServerHelper implements Runnable {
         getMenu().initialScreen();
         try {
             while(!getMenu().isStartGame()) {
+                clearScreen();
                 getMenu().menuInit();
             }
         } catch (IOException e) {
@@ -211,40 +214,36 @@ public class PlayerServerHelper implements Runnable {
         return number;
     }
 
-    public void showBoard(){
-        out.println("============================");
-        out.println("|   GUESS WHO? IN <A/C_>   |");
-        out.println("============================");
-        out.println("| Menu options:            |");
-        out.println("|        1. Start Game     |");
-        out.println("|        2. Instructions   |");
-        out.println("|        3. Credits        |");
-        out.println("|        4. Exit           |");
-        out.println("============================");
+    private void clearScreen(){
+        System.out.print("\033[H\033[2J");
+    }
 
-        int counter = 0;
+    public void showBoard(){
+        clearScreen();
         for(int Line = 0 ; Line < 5 ; Line++){
-            out.println();
             for(int Column = 0 ; Column < 5 ; Column++){
-                out.print("   " + counter+1 + ": "+ boardGame[Line][Column].getName());
-                counter++;
+                out.print("    " + boardGame[Line][Column].getId() + ": "+ boardGame[Line][Column].getName());
             }
             out.println();
-            for(int Column = 0; Column < 5; Column++){
-                out.print("    "+ boardGame[Line][Column].getGender());
+        }
+    }
+
+    public void showColorBoard(int id){
+        clearScreen();
+        for(int Line = 0 ; Line < 5 ; Line++){
+            for(int Column = 0 ; Column < 5 ; Column++) {
+                if (id == boardGame[Line][Column].getId()) {
+                    out.print("   "+ANSI_RED+ boardGame[Line][Column].getId() + ": " + boardGame[Line][Column].getName()+ANSI_RESET);
+                } else {
+                    out.print("   "+ boardGame[Line][Column].getId() + ": " + boardGame[Line][Column].getName());
+                }
             }
+            out.println();
         }
     }
 
     public void setBoard(int number){
-        for(int i=0 ; i<boardGame.length ; i++){
-            for(int j=0 ; j<boardGame.length ; j++){
-                if (boardGame[i][j].getId()==number){
-
-                }
-            }
-        }
-
+        showColorBoard(number);
     }
 
     public void startBoard(){
