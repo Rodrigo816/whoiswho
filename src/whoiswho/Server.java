@@ -39,16 +39,18 @@ public class Server {
             String temporaryName = "player" + counter;
             PlayerServerHelper aux = new PlayerServerHelper(temporaryName, clientSocket);
             playerList.offer(aux);
+
             aux.getOut().println("Waiting for your opponent...");
 
+                synchronized (playerList) {
+                    if (playerList.size() >= 2) {
+                        GameStart gameStart = new GameStart(playerList.poll(), playerList.poll());
+                        fixedPool.submit(gameStart);
 
-            synchronized (playerList) {
-                if (playerList.size() >= 2) {
-                    GameStart gameStart = new GameStart(playerList.poll(), playerList.poll());
-                    fixedPool.submit(gameStart);
-
+                    }
                 }
-            }
+
+
         }
     }
 
@@ -68,6 +70,7 @@ public class Server {
 
         @Override
         public void run() {
+
             System.out.println("Two players connected and ready to start a game");
             for (int i = 0; i < players.size(); i++) {
                 players.get(i).setGameStart(this);
