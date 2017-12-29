@@ -36,7 +36,7 @@ public class PlayerServerHelper implements Runnable {
     @Override
     public synchronized void run() {
 
-        out.println("Insert your name: ");
+        out.println("Insert your user name: ");
 
         try {
 
@@ -70,7 +70,7 @@ public class PlayerServerHelper implements Runnable {
                         gameStart.sendToAll("[Server:] Game Started.");
                         for (int i = 0; i < gameStart.players.size(); i++) {
                             if (gameStart.players.get(i).getCurrentTurn() == CurrentTurn.ACTIVE) {
-                                gameStart.players.get(i).send("[Server:] Its your turn");
+                                gameStart.players.get(i).send("[Server:] It's your turn");
                             } else {
                                 gameStart.players.get(i).send("[Server:] Your opponent plays first.");
                             }
@@ -89,21 +89,19 @@ public class PlayerServerHelper implements Runnable {
                             continue;
                         }
 
-                        gameStart.sendToAll("["+name+" ASK:] " + firstWordSplit[1]);
+                        gameStart.sendToAll("[" + name + " ASK:] " + firstWordSplit[1]);
                         currentTurn=CurrentTurn.WAITING;
                         continue;
 
                     }
-                    if (firstWordSplit[0].toUpperCase().equals("/YES") || firstWordSplit[0].toUpperCase().equals("/NO") || firstWordSplit[0].toUpperCase().equals("/DON\'T KNOW")){
+                    if (firstWordSplit[0].toUpperCase().equals("/YES") || firstWordSplit[0].toUpperCase().equals("/NO") || firstWordSplit[0].toUpperCase().equals("/UNKNOWN")){
                         if (currentTurn!=CurrentTurn.INACTIVE){
                             send("[Server:] You already have answered, make a question to your opponent.");
                             continue;
                         }
                         currentTurn = CurrentTurn.ACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.INACTIVE);
-
-                        firstWordSplit = message.split(" ", 2);
-                        gameStart.sendToAll("["+name+" Answer "+ firstWordSplit[0] +" :] " + firstWordSplit[1]);
+                        gameStart.sendToAll("[" + name + " ANSWER:] " + firstWordSplit[0].substring(1));
                         continue;
                     }
                     if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
@@ -118,8 +116,8 @@ public class PlayerServerHelper implements Runnable {
 
 
                         if (firstWordSplit[1].toUpperCase().equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
-                            send("[Server:] Your guess "+firstWordSplit[1]+ "is correct.\n Congratulations "+name+ "You won the game.");
-                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent" + name + " tried " +firstWordSplit[1] + ". You have lost the game.");
+                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game.");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game.");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
                                 gameStart.players.get(i).in.close();
                                 gameStart.players.get(i).out.close();
@@ -128,9 +126,10 @@ public class PlayerServerHelper implements Runnable {
                             break;
                         }
                         send("[Server:] Your guess "+firstWordSplit[1]+ " is incorrect. Keep trying.");
-                        gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent" + name + " tried " +firstWordSplit[1] + " and failed. It's your turn now");
+                        gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + " and failed. It's your turn now");
                         currentTurn=CurrentTurn.INACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.ACTIVE);
+                        continue;
                     }
                     gameStart.sendToAll(name + ": "+ message);
                 }
