@@ -36,7 +36,7 @@ public class PlayerServerHelper implements Runnable {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
         for (int i = 0; i < characters.length; i++) {
-            characters[i] = new Characters(names[i], gender[i]);
+            characters[i] = new Characters(names[i], gender[i],i+1);
         }
         menu = new Menu(this);
         boardGame = new Characters[5][5];
@@ -213,6 +213,16 @@ public class PlayerServerHelper implements Runnable {
     }
 
     public void showBoard(){
+        out.println("============================");
+        out.println("|   GUESS WHO? IN <A/C_>   |");
+        out.println("============================");
+        out.println("| Menu options:            |");
+        out.println("|        1. Start Game     |");
+        out.println("|        2. Instructions   |");
+        out.println("|        3. Credits        |");
+        out.println("|        4. Exit           |");
+        out.println("============================");
+
         int counter = 0;
         for(int Line = 0 ; Line < 5 ; Line++){
             out.println();
