@@ -64,7 +64,7 @@ public class PlayerServerHelper implements Runnable {
             while (true){
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
-
+                    System.out.println(name + Thread.currentThread().getName());
                     if (counter==0) {
                         counter++;
                         gameStart.sendToAll("[Server:] Game Started.");
@@ -76,6 +76,7 @@ public class PlayerServerHelper implements Runnable {
                             }
                         }
                     }
+                    System.out.println(name + Thread.currentThread().getName());
 
                     message = in.readLine();
                     fristWordSplit = message.split(" ", 2);
