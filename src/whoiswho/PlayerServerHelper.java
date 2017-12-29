@@ -12,7 +12,14 @@ public class PlayerServerHelper implements Runnable {
             "Rodrigo B", "Renata", "Luís S", "Toste", "Francisco",
             "Leandro", "Soraia", "Lobão", "Rodrigo D", "Dário",
             "Ferrão", "Catarina", "Sérgio", "Audrey", "Faustino"};
+    private String[] gender = {"M", "M", "M", "M", "M",
+            "M", "M", "F", "M", "F",
+            "M", "F", "M", "M", "M",
+            "M", "F", "M", "M", "M",
+            "M", "F", "M", "F", "M"};
     private Characters[] characters = new Characters[names.length];
+    private Characters[][] boardGame;
+    private Menu menu;
     private String nameHolder;
     private boolean init = false;
     private BufferedReader in;
@@ -29,12 +36,23 @@ public class PlayerServerHelper implements Runnable {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
         for (int i = 0; i < characters.length; i++) {
-            characters[i] = new Characters(names[i]);
+            characters[i] = new Characters(names[i], gender[i]);
         }
+        menu = new Menu(this);
+        boardGame = new Characters[5][5];
     }
 
     @Override
     public void run() {
+
+        getMenu().initialScreen();
+        try {
+            while(!getMenu().isStartGame()) {
+                getMenu().menuInit();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         playerInfo();
 
@@ -51,6 +69,8 @@ public class PlayerServerHelper implements Runnable {
                     if (counter == 0) {
                         counter++;
                         gameStartedMessage();
+                        startBoard();
+                        showBoard();
                     }
 
                     message = in.readLine();
@@ -86,6 +106,7 @@ public class PlayerServerHelper implements Runnable {
                         currentTurn = CurrentTurn.ACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.INACTIVE);
                         gameStart.sendToAll("[" + name + " ANSWER:] " + firstWordSplit[0].substring(1));
+                        showBoard();
                         continue;
                     }
                     if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
@@ -137,7 +158,7 @@ public class PlayerServerHelper implements Runnable {
 
     public void playerInfo() {
 
-        out.println("Insert your user name: "); //if change this print have to change also on the client class
+        out.println("Insert your username: "); //if change this print have to change also on the client class
 
         try {
 
@@ -179,6 +200,35 @@ public class PlayerServerHelper implements Runnable {
         return number;
     }
 
+    public void showBoard(){
+        int counter = 0;
+        for(int Line = 0 ; Line < 5 ; Line++){
+            out.println();
+            for(int Column = 0 ; Column < 5 ; Column++){
+                out.print("   " + counter+1 + ": "+ boardGame[Line][Column].getName());
+                counter++;
+            }
+            out.println();
+            for(int Column = 0; Column < 5; Column++){
+                out.print("    "+ boardGame[Line][Column].getGender());
+            }
+        }
+    }
+
+    public void setBoard(int number){
+
+    }
+
+    public void startBoard(){
+        int counter = 0;
+        for(int i=0 ; i<boardGame.length ; i++){
+            for(int j=0 ; j<boardGame.length ; j++){
+                boardGame[i][j] = characters[counter];
+                counter++;
+            }
+        }
+    }
+
     public void setGameStart(Server.GameStart gameStart) {
         this.gameStart = gameStart;
     }
@@ -193,6 +243,14 @@ public class PlayerServerHelper implements Runnable {
 
     public PrintWriter getOut() {
         return out;
+    }
+
+    public BufferedReader getIn() {
+        return in;
+    }
+
+    public Menu getMenu() {
+        return menu;
     }
 
     public void setCurrentTurn(CurrentTurn currentTurn) {
