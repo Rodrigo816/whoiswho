@@ -2,12 +2,13 @@ package whoiswho;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PlayerServerHelper implements Runnable {
     private String name;
-    private String[] names = {"Ângelo", "Brandão", "Luís F", "Davide", "André",
+    private final String[] names = {"Ângelo", "Brandão", "Luís F", "Davide", "André",
             "César", "João S", "Amélia", "João M", "Sofia",
             "Rodrigo B", "Renata", "Luís S", "Toste", "Francisco",
             "Leandro", "Soraia", "Lobão", "Rodrigo D", "Dário",
@@ -17,10 +18,10 @@ public class PlayerServerHelper implements Runnable {
     private boolean init = false;
     private BufferedReader in;
     private PrintWriter out;
-    Server.GameStart gameStart;
+    private Server.GameStart gameStart;
     private Socket socket;
     public enum CurrentTurn { ACTIVE, INACTIVE, WAITING}
-    private CurrentTurn currentTurn=CurrentTurn.INACTIVE;
+    private CurrentTurn currentTurn = CurrentTurn.INACTIVE;
 
 
     public PlayerServerHelper(String name, Socket socket) throws IOException {
@@ -36,7 +37,7 @@ public class PlayerServerHelper implements Runnable {
     @Override
     public synchronized void run() {
 
-        out.println("Insert your name: ");
+        out.println("Insert your user name: ");
 
         try {
 
@@ -57,7 +58,7 @@ public class PlayerServerHelper implements Runnable {
 
 
             String message;
-            String [] fristWordSplit;
+            String [] firstWordSplit;
             int currentIndexPlayer = gameStart.players.indexOf(this);
 
             int counter =0;
@@ -70,7 +71,7 @@ public class PlayerServerHelper implements Runnable {
                         gameStart.sendToAll("[Server:] Game Started.");
                         for (int i = 0; i < gameStart.players.size(); i++) {
                             if (gameStart.players.get(i).getCurrentTurn() == CurrentTurn.ACTIVE) {
-                                gameStart.players.get(i).send("[Server:] Its your turn");
+                                gameStart.players.get(i).send("[Server:] It's your turn");
                             } else {
                                 gameStart.players.get(i).send("[Server:] Your opponent plays first.");
                             }
@@ -79,48 +80,46 @@ public class PlayerServerHelper implements Runnable {
                     System.out.println(name + Thread.currentThread().getName());
 
                     message = in.readLine();
-                    fristWordSplit = message.split(" ", 2);
-                    for (int i = 0; i <fristWordSplit.length ; i++) {
-                        System.out.println(fristWordSplit[i]);
+                    firstWordSplit = message.split(" ", 2);
+                    for (int i = 0; i <firstWordSplit.length ; i++) {
+                        System.out.println(firstWordSplit[i]);
                     }
 
-                    if (fristWordSplit[0].toUpperCase().equals("/ASK")){
+                    if (firstWordSplit[0].toUpperCase().equals("/ASK")){
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Bitch please don't cheat its not your turn");
+                            send("[Server:] Wait for your turn.");
                             continue;
                         }
 
-                        gameStart.sendToAll("["+name+" ASK:] " + fristWordSplit[1]);
+                        gameStart.sendToAll("[" + name + " ASK:] " + firstWordSplit[1]);
                         currentTurn=CurrentTurn.WAITING;
                         continue;
 
                     }
-                    if (fristWordSplit[0].toUpperCase().equals("/YES") || fristWordSplit[0].toUpperCase().equals("/NO") || fristWordSplit[0].toUpperCase().equals("/DON\'T KNOW")){
+                    if (firstWordSplit[0].toUpperCase().equals("/YES") || firstWordSplit[0].toUpperCase().equals("/NO") || firstWordSplit[0].toUpperCase().equals("/UNKNOWN")){
                         if (currentTurn!=CurrentTurn.INACTIVE){
-                            send("NIGAA NOOO CHEAT");
+                            send("[Server:] You already have answered, make a question to your opponent.");
                             continue;
                         }
                         currentTurn = CurrentTurn.ACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.INACTIVE);
-
-                        fristWordSplit = message.split(" ", 2);
-                        gameStart.sendToAll("["+name+" Answer "+ fristWordSplit[0] +" :] " + fristWordSplit[1]);
+                        gameStart.sendToAll("[" + name + " ANSWER:] " + firstWordSplit[0].substring(1));
                         continue;
                     }
-                    if (fristWordSplit[0].toUpperCase().equals("/TRY")) {
+                    if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Bitch please don't cheat its not your turn");
+                            send("[Server:] Wait for your turn.");
                             continue;
                         }
-                        if (fristWordSplit.length==0){
-                            send("Wrong comand please use /try fallowed by the name");
+                        if (firstWordSplit.length==0){
+                            send("Wrong command please use /try followed by the name");
                             continue;
                         }
 
 
-                        if (fristWordSplit[1].toUpperCase().equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
-                            send("[Server:] Your guess "+fristWordSplit[1]+ "is correct.\n Congratulations "+name+ "You won the game.");
-                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent" + name + " tryed " +fristWordSplit[1] + ". You have lost the game.");
+                        if (firstWordSplit[1].toUpperCase().equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
+                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game.");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game.");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
                                 gameStart.players.get(i).in.close();
                                 gameStart.players.get(i).out.close();
@@ -128,10 +127,11 @@ public class PlayerServerHelper implements Runnable {
                             }
                             break;
                         }
-                        send("[Server:] Your guess "+fristWordSplit[1]+ " is incorrect. Muahaha keep trying.");
-                        gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent" + name + " tryed " +fristWordSplit[1] + " and failed. Its your turn now");
+                        send("[Server:] Your guess "+firstWordSplit[1]+ " is incorrect. Keep trying.");
+                        gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + " and failed. It's your turn now");
                         currentTurn=CurrentTurn.INACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.ACTIVE);
+                        continue;
                     }
                     gameStart.sendToAll(name + ": "+ message);
                 }

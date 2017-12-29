@@ -10,6 +10,7 @@ public class Client {
 
     private final int PORTNUMBER = 5555;
     private final String HOSTNAME = "localhost";
+    private boolean sendText = false;
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -27,8 +28,18 @@ public class Client {
             ExecutorService singleExecutor = Executors.newSingleThreadExecutor();
             singleExecutor.submit(new ClientHelper(clientSocket));
 
-            while (clientSocket.isConnected()){
-                System.out.println(in.readLine());
+            while (!clientSocket.isClosed()){
+                String serverMessage = in.readLine();
+                if (serverMessage.equals("[Server:] Game Started.")) {
+                    sendText = true;
+                }
+                if (serverMessage.contains("You picked ")) {
+                    sendText = false;
+                }
+                if (serverMessage.equals("Insert your user name: ")) {
+                    sendText = true;
+                }
+                System.out.println(serverMessage);
             }
 
             clientSocket.close();
@@ -56,8 +67,11 @@ public class Client {
                 e.printStackTrace();
             }
             while (!clientSocket.isClosed()){
+
                 String myLine = myScanner.nextLine();
-                out.println(myLine);
+                if (sendText) {
+                    out.println(myLine);
+                }
             }
         }
     }
