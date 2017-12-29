@@ -36,29 +36,12 @@ public class PlayerServerHelper implements Runnable {
     @Override
     public void run() {
 
-        out.println("Insert your user name: "); //if change this print have to change also on the client class
+        playerInfo();
 
         try {
-
-            name = in.readLine();
-
-            out.println("Characters:");
-            for (int i = 0; i < characters.length; i++) {
-                out.println((i + 1) + ": " + characters[i].getName());
-            }
-
-            int number = chooseCharacter();
-
-            nameHolder = characters[number - 1].getName();
-            out.println("You picked " + nameHolder + "."); //if change this print have to change also on the client class
-            out.println("************************\n*      *       *       *\n*      *       *       *\n");
-            init = true;
-
-
             String message;
             String [] firstWordSplit;
             int currentIndexPlayer = gameStart.players.indexOf(this);
-
             int counter = 0;
 
             while (true){
@@ -67,13 +50,7 @@ public class PlayerServerHelper implements Runnable {
 
                     if (counter == 0) {
                         counter++;
-                        send("[Server:] Game Started"); //if change this print have to change also on the client class
-                        if(currentTurn == CurrentTurn.ACTIVE){
-                            send("[Server:] It's your turn");
-                        }
-                        if(currentTurn == CurrentTurn.WAITING) {
-                            send("[Server:] Your opponent plays first");
-                        }
+                        gameStartedMessage();
                     }
 
                     message = in.readLine();
@@ -82,7 +59,7 @@ public class PlayerServerHelper implements Runnable {
                     if (firstWordSplit[0].toUpperCase().equals("/ASK")){
 
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Wait for your turn.");
+                            send("[Server:] Wait for your turn");
                             continue;
                         }
 
@@ -113,7 +90,7 @@ public class PlayerServerHelper implements Runnable {
                     }
                     if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Wait for your turn.");
+                            send("[Server:] Wait for your turn");
                             continue;
                         }
                         if (firstWordSplit.length == 1){
@@ -123,8 +100,8 @@ public class PlayerServerHelper implements Runnable {
 
 
                         if (firstWordSplit[1].toUpperCase().equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
-                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game.");
-                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game.");
+                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
                                 gameStart.players.get(i).in.close();
                                 gameStart.players.get(i).out.close();
@@ -147,6 +124,41 @@ public class PlayerServerHelper implements Runnable {
         }
     }
 
+    public void gameStartedMessage() {
+
+        send("[Server:] Game Started"); //if change this print have to change also on the client class
+        if(currentTurn == CurrentTurn.ACTIVE){
+            send("[Server:] It's your turn\n");
+        }
+        if(currentTurn == CurrentTurn.WAITING) {
+            send("[Server:] Your opponent plays first\n");
+        }
+    }
+
+    public void playerInfo() {
+
+        out.println("Insert your user name: "); //if change this print have to change also on the client class
+
+        try {
+
+            name = in.readLine();
+
+            out.println("Characters:");
+            for (int i = 0; i < characters.length; i++) {
+                out.println((i + 1) + ": " + characters[i].getName());
+            }
+
+            int number = chooseCharacter();
+
+            nameHolder = characters[number - 1].getName();
+            out.println("You picked " + nameHolder + "."); //if change this print have to change also on the client class
+            out.println("\n*****************************************\n");
+            init = true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public int chooseCharacter() throws IOException {
         int number = 0;
         while (number < 1 || number > names.length) {
@@ -161,7 +173,7 @@ public class PlayerServerHelper implements Runnable {
             }
 
             if (number > names.length || number < 1) {
-                out.println("Please insert a valid character");
+                out.println("Please insert a valid character's number:");
             }
         }
         return number;
