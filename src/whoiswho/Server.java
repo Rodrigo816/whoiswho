@@ -72,7 +72,7 @@ public class Server {
                 players.get(i).setGameStart(this);
                 fixedPool.submit(players.get(i));
             }
-            players.get(0).setCurrentTurn(1);
+            players.get(0).setCurrentTurn(PlayerServerHelper.CurrentTurn.ACTIVE);
         }
         public void sendToAll(String messageFromClient) {
             synchronized (players) {
