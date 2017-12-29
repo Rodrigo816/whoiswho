@@ -2,7 +2,6 @@ package whoiswho;
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +20,7 @@ public class PlayerServerHelper implements Runnable {
     private Server.GameStart gameStart;
     private Socket socket;
     public enum CurrentTurn { ACTIVE, INACTIVE, WAITING}
-    private CurrentTurn currentTurn = CurrentTurn.INACTIVE;
+    private CurrentTurn currentTurn = CurrentTurn.WAITING;
 
 
     public PlayerServerHelper(String name, Socket socket) throws IOException {
@@ -35,70 +34,53 @@ public class PlayerServerHelper implements Runnable {
     }
 
     @Override
-    public synchronized void run() {
+    public void run() {
 
-        out.println("Insert your user name: ");
+        playerInfo();
 
         try {
-
-            name = in.readLine();
-            System.out.println(name);
-
-            out.println("Characters:");
-            for (int i = 0; i < characters.length; i++) {
-                out.println((i + 1) + ": " + characters[i].getName());
-            }
-
-            int number = chooseCharacter();
-
-            nameHolder = characters[number - 1].getName();
-            out.println("You picked " + nameHolder + ".");
-            out.println("************************\n*      *       *       *\n*      *       *       *\n");
-            init = true;
-
-
             String message;
             String [] firstWordSplit;
             int currentIndexPlayer = gameStart.players.indexOf(this);
+            int counter = 0;
 
-            int counter =0;
             while (true){
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
-                    System.out.println(name + Thread.currentThread().getName());
-                    if (counter==0) {
+
+                    if (counter == 0) {
                         counter++;
-                        gameStart.sendToAll("[Server:] Game Started.");
-                        for (int i = 0; i < gameStart.players.size(); i++) {
-                            if (gameStart.players.get(i).getCurrentTurn() == CurrentTurn.ACTIVE) {
-                                gameStart.players.get(i).send("[Server:] It's your turn");
-                            } else {
-                                gameStart.players.get(i).send("[Server:] Your opponent plays first.");
-                            }
-                        }
+                        gameStartedMessage();
                     }
-                    System.out.println(name + Thread.currentThread().getName());
 
                     message = in.readLine();
                     firstWordSplit = message.split(" ", 2);
-                    for (int i = 0; i <firstWordSplit.length ; i++) {
-                        System.out.println(firstWordSplit[i]);
-                    }
 
                     if (firstWordSplit[0].toUpperCase().equals("/ASK")){
+
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Wait for your turn.");
+                            send("[Server:] Wait for your turn");
+                            continue;
+                        }
+
+                        if (firstWordSplit.length == 1){
+                            send("Wrong command please use /ask followed by the question");
                             continue;
                         }
 
                         gameStart.sendToAll("[" + name + " ASK:] " + firstWordSplit[1]);
                         currentTurn=CurrentTurn.WAITING;
+
+                        if (currentTurn == CurrentTurn.WAITING && gameStart.players.get(currentIndexPlayer==1?0:1).currentTurn == CurrentTurn.WAITING) {
+                            gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.INACTIVE);
+                        }
+
                         continue;
 
                     }
                     if (firstWordSplit[0].toUpperCase().equals("/YES") || firstWordSplit[0].toUpperCase().equals("/NO") || firstWordSplit[0].toUpperCase().equals("/UNKNOWN")){
                         if (currentTurn!=CurrentTurn.INACTIVE){
-                            send("[Server:] You already have answered, make a question to your opponent.");
+                            send("[Server:] It's not your time to answer");
                             continue;
                         }
                         currentTurn = CurrentTurn.ACTIVE;
@@ -108,18 +90,18 @@ public class PlayerServerHelper implements Runnable {
                     }
                     if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Wait for your turn.");
+                            send("[Server:] Wait for your turn");
                             continue;
                         }
-                        if (firstWordSplit.length==0){
+                        if (firstWordSplit.length == 1){
                             send("Wrong command please use /try followed by the name");
                             continue;
                         }
 
 
                         if (firstWordSplit[1].toUpperCase().equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
-                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game.");
-                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game.");
+                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
                                 gameStart.players.get(i).in.close();
                                 gameStart.players.get(i).out.close();
@@ -129,7 +111,7 @@ public class PlayerServerHelper implements Runnable {
                         }
                         send("[Server:] Your guess "+firstWordSplit[1]+ " is incorrect. Keep trying.");
                         gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + " and failed. It's your turn now");
-                        currentTurn=CurrentTurn.INACTIVE;
+                        currentTurn=CurrentTurn.WAITING;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.ACTIVE);
                         continue;
                     }
@@ -137,6 +119,41 @@ public class PlayerServerHelper implements Runnable {
                 }
             }
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void gameStartedMessage() {
+
+        send("[Server:] Game Started"); //if change this print have to change also on the client class
+        if(currentTurn == CurrentTurn.ACTIVE){
+            send("[Server:] It's your turn\n");
+        }
+        if(currentTurn == CurrentTurn.WAITING) {
+            send("[Server:] Your opponent plays first\n");
+        }
+    }
+
+    public void playerInfo() {
+
+        out.println("Insert your user name: "); //if change this print have to change also on the client class
+
+        try {
+
+            name = in.readLine();
+
+            out.println("Characters:");
+            for (int i = 0; i < characters.length; i++) {
+                out.println((i + 1) + ": " + characters[i].getName());
+            }
+
+            int number = chooseCharacter();
+
+            nameHolder = characters[number - 1].getName();
+            out.println("You picked " + nameHolder + "."); //if change this print have to change also on the client class
+            out.println("\n*****************************************\n");
+            init = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -156,7 +173,7 @@ public class PlayerServerHelper implements Runnable {
             }
 
             if (number > names.length || number < 1) {
-                out.println("Please insert a valid character");
+                out.println("Please insert a valid character's number:");
             }
         }
         return number;
@@ -166,8 +183,8 @@ public class PlayerServerHelper implements Runnable {
         this.gameStart = gameStart;
     }
 
-    public void send(String responseLine) {
-        out.println(responseLine);
+    public void send(String message) {
+        out.println(message);
     }
 
     public boolean isInit() {
@@ -177,15 +194,12 @@ public class PlayerServerHelper implements Runnable {
     public PrintWriter getOut() {
         return out;
     }
+
     public void setCurrentTurn(CurrentTurn currentTurn) {
         this.currentTurn = currentTurn;
     }
+
     public String getNameHolder() {
         return nameHolder;
     }
-
-    public CurrentTurn getCurrentTurn() {
-        return currentTurn;
-    }
-
 }
