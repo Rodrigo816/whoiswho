@@ -13,6 +13,7 @@ public class PlayerServerHelper implements Runnable {
     private String nameHolder;
     private boolean init = false;
     private BufferedReader in;
+    private BufferedReader in2;
     private PrintWriter out;
     Server.GameStart gameStart;
     private Socket socket;
@@ -21,6 +22,8 @@ public class PlayerServerHelper implements Runnable {
         this.name = name;
         this.socket = socket;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
         for (int i = 0; i < characters.length; i++) {
             characters[i] = new Characters(names[i]);
@@ -29,10 +32,16 @@ public class PlayerServerHelper implements Runnable {
 
     @Override
     public synchronized void run() {
+
+
         out.println("Insert your name: ");
         String messageFromClient;
 
         try {
+
+
+
+
             messageFromClient = in.readLine();
             name = messageFromClient;
             System.out.println(messageFromClient);
@@ -55,6 +64,9 @@ public class PlayerServerHelper implements Runnable {
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
                     mensage = in.readLine();
+                    if(mensage == null){
+                        continue;
+                    }
                     gameStart.sendToAll(name + ": "+ mensage);
                 }
             }
