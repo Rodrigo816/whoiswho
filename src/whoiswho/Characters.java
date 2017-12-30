@@ -3,21 +3,15 @@ package whoiswho;
 public class Characters {
     private String name;
     private boolean selected = false;
-    private String gender;
     private int id;
 
-    public Characters(String name, String gender, int id){
+    public Characters(String name, int id){
         this.name = name;
-        this.gender = gender;
         this.id = id;
     }
 
     public String getName() {
         return name;
-    }
-
-    public String getGender(){
-        return gender;
     }
 
     public int getId() {
