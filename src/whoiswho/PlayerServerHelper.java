@@ -103,6 +103,7 @@ public class PlayerServerHelper implements Runnable {
                         currentTurn = CurrentTurn.ACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.INACTIVE);
                         gameStart.sendToAll("[" + name + " ANSWER:] " + firstWordSplit[0].substring(1));
+                        gameStart.players.get(currentIndexPlayer==1?0:1).startBoard();
                         startBoard();
                         continue;
                     }
