@@ -106,7 +106,7 @@ public class PlayerServerHelper implements Runnable {
                         startBoard();
                         continue;
                     }
-                    if (firstWordSplit[0].toUpperCase().equals("/REMOVE") && currentTurn==CurrentTurn.ACTIVE){
+                    if (firstWordSplit[0].toUpperCase().equals("/REMOVE") && currentTurn==CurrentTurn.INACTIVE){
                         if (firstWordSplit.length == 1){
                             send("Wrong command please use /remove followed by the name");
                             continue;
