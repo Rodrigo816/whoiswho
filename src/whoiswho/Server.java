@@ -34,20 +34,23 @@ public class Server {
 
         while (serverSocket.isBound()) {
             clientSocket = serverSocket.accept();
+            System.out.println("Connection successfully from IP: " + clientSocket.getLocalAddress().getHostAddress() + " Port: " + clientSocket.getLocalPort());
             counter++;
             String temporaryName = "player" + counter;
             PlayerServerHelper aux = new PlayerServerHelper(temporaryName, clientSocket);
             playerList.offer(aux);
+
             aux.getOut().println("Waiting for your opponent...");
 
+                synchronized (playerList) {
+                    if (playerList.size() >= 2) {
+                        GameStart gameStart = new GameStart(playerList.poll(), playerList.poll());
+                        fixedPool.submit(gameStart);
 
-            synchronized (playerList) {
-                if (playerList.size() >= 2) {
-                    GameStart gameStart = new GameStart(playerList.poll(), playerList.poll());
-                    fixedPool.submit(gameStart);
-
+                    }
                 }
-            }
+
+
         }
     }
 
@@ -67,16 +70,18 @@ public class Server {
 
         @Override
         public void run() {
-            System.out.println("Game Started");
+
+            System.out.println("Two players connected and ready to start a game");
             for (int i = 0; i < players.size(); i++) {
                 players.get(i).setGameStart(this);
                 fixedPool.submit(players.get(i));
             }
+            players.get(0).setCurrentTurn(PlayerServerHelper.CurrentTurn.ACTIVE);
         }
-        public void sendToAll(String messageFromClient) {
+        public void sendToAll(String message) {
             synchronized (players) {
                 for (int i = 0; i < players.size(); i++) {
-                    players.get(i).send(messageFromClient);
+                    players.get(i).send(message);
                 }
             }
         }
