@@ -215,19 +215,19 @@ public class PlayerServerHelper implements Runnable {
     public void showBoard(int Line){
         clearScreen();
         if(Line != 0) {
-            out.println("" + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "     " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "     " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "     " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
+            out.println("" + boardGame[0][0].getId() + ":" + boardGame[0][0].getName() + "    " + boardGame[0][1].getId() + ":" + boardGame[0][1].getName() + "     " + boardGame[0][2].getId() + ":" + boardGame[0][2].getName() + "     " + boardGame[0][3].getId() + ":" + boardGame[0][3].getName() + "     " + boardGame[0][4].getId() + ":" + boardGame[0][4].getName());
         }
         if(Line != 1) {
-            out.println(" " + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "     " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "     " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "   " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "   " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
+            out.println(" " + boardGame[1][0].getId() + ":" + boardGame[1][0].getName() + "     " + boardGame[1][1].getId() + ":" + boardGame[1][1].getName() + "     " + boardGame[1][2].getId() + ":" + boardGame[1][2].getName() + "   " + boardGame[1][3].getId() + ":" + boardGame[1][3].getName() + "   " + boardGame[1][4].getId() + ":" + boardGame[1][4].getName());
         }
         if(Line != 2) {
-            out.println(" " + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "    " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "    " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "     " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
+            out.println(" " + boardGame[2][0].getId() + ":" + boardGame[2][0].getName() + "    " + boardGame[2][1].getId() + ":" + boardGame[2][1].getName() + "    " + boardGame[2][2].getId() + ":" + boardGame[2][2].getName() + "    " + boardGame[2][3].getId() + ":" + boardGame[2][3].getName() + "     " + boardGame[2][4].getId() + ":" + boardGame[2][4].getName());
         }
         if(Line != 3){
-            out.println(" "+ boardGame[Line][0].getId() + ":"+ boardGame[Line][0].getName()+"     " + boardGame[Line][1].getId() + ":"+ boardGame[Line][1].getName()+"   " + boardGame[Line][2].getId() + ":"+ boardGame[Line][2].getName()+"   " + boardGame[Line][3].getId() + ":"+ boardGame[Line][3].getName()+"     " + boardGame[Line][4].getId() + ":"+ boardGame[Line][4].getName());
+            out.println(" "+ boardGame[3][0].getId() + ":"+ boardGame[3][0].getName()+"     " + boardGame[3][1].getId() + ":"+ boardGame[3][1].getName()+"   " + boardGame[3][2].getId() + ":"+ boardGame[3][2].getName()+"   " + boardGame[3][3].getId() + ":"+ boardGame[3][3].getName()+"     " + boardGame[3][4].getId() + ":"+ boardGame[3][4].getName());
         }
         if(Line != 4) {
-            out.println(" " + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "   " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "  " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "   " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
+            out.println(" " + boardGame[4][0].getId() + ":" + boardGame[4][0].getName() + "    " + boardGame[4][1].getId() + ":" + boardGame[4][1].getName() + "   " + boardGame[4][2].getId() + ":" + boardGame[4][2].getName() + "  " + boardGame[4][3].getId() + ":" + boardGame[4][3].getName() + "   " + boardGame[4][4].getId() + ":" + boardGame[4][4].getName());
         }
         drawCharacters(Line);
     }
