@@ -182,7 +182,7 @@ public class PlayerServerHelper implements Runnable {
 
     public void playerInfo() {
 
-        out.println("Insert your username: "); //if change this print have to change also on the client class
+        out.println("Insert your username: ");
 
         try {
 

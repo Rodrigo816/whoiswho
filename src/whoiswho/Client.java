@@ -36,7 +36,7 @@ public class Client {
                 if (serverMessage.contains("You picked ")) {  //The second time is when choose the character. Then don't send until the game started
                     sendText = false;
                 }
-                if (serverMessage.equals("Insert your username: ")) { //The first time client send text to server is when he inserts his user name
+                if (serverMessage.equals(" Select option: ")) { //The first time client send text to server is when he is on menu
                     sendText = true;
                 }
                 System.out.println(serverMessage);
