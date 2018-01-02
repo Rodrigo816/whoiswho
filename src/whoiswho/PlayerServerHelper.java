@@ -23,8 +23,7 @@ public class PlayerServerHelper implements Runnable {
     private Socket socket;
     public enum CurrentTurn { ACTIVE, INACTIVE, WAITING}
     private CurrentTurn currentTurn = CurrentTurn.WAITING;
-    public static final String ANSI_RED = "\u001B[31m";
-    public static final String ANSI_RESET = "\u001B[0m";
+    private int nameHolderNumber;
 
 
     public PlayerServerHelper(String name, Socket socket) throws IOException {
@@ -76,12 +75,12 @@ public class PlayerServerHelper implements Runnable {
                     if (firstWordSplit[0].toUpperCase().equals("/ASK")){
 
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Wait for your turn");
+                            send("[Server:] Wait for your turn.");
                             continue;
                         }
 
                         if (firstWordSplit.length == 1){
-                            send("Wrong command please use /ask followed by the question");
+                            send("Wrong command, please use /ask followed by the question.");
                             continue;
                         }
 
@@ -95,42 +94,53 @@ public class PlayerServerHelper implements Runnable {
                         continue;
 
                     }
-                    if (firstWordSplit[0].toUpperCase().equals("/YES") || firstWordSplit[0].toUpperCase().equals("/NO") || firstWordSplit[0].toUpperCase().equals("/UNKNOWN")){
+                    if (firstWordSplit[0].toUpperCase().equals("/YES") || firstWordSplit[0].toUpperCase().equals("/NO")){
                         if (currentTurn!=CurrentTurn.INACTIVE){
-                            send("[Server:] It's not your time to answer");
+                            send("[Server:] It's not your time to answer.");
                             continue;
                         }
                         currentTurn = CurrentTurn.ACTIVE;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.INACTIVE);
                         gameStart.sendToAll("[" + name + " ANSWER:] " + firstWordSplit[0].substring(1));
-                        startBoard();
                         continue;
                     }
-                    if (firstWordSplit[0].toUpperCase().equals("/REMOVE") && currentTurn==CurrentTurn.ACTIVE){
+                    if (firstWordSplit[0].toUpperCase().equals("/REMOVE")){
                         if (firstWordSplit.length == 1){
-                            send("Wrong command please use /remove followed by the name");
+                            send("Wrong command, please use /remove followed by the number.");
                             continue;
                         }
-                        for (int i = 0; i <characters.length ; i++) {
-                            if (firstWordSplit[1].equals(characters[i].getName()) || Integer.parseInt(firstWordSplit[1]) == characters[i].getId()){
-                                showColorBoard(characters[i].getId());
+                        Pattern p = Pattern.compile("[0-9]+"); //only accept numbers
+                        Matcher m = p.matcher(firstWordSplit[1]);
+                        if (m.matches()) {
+                            if (Integer.parseInt(firstWordSplit[1]) > names.length || Integer.parseInt(firstWordSplit[1]) < 1) {
+                                send("Wrong character's number, please use /remove followed by the number.");
+                                continue;
                             }
+                            for (int i = 0; i <characters.length ; i++) {
+                                if (Integer.parseInt(firstWordSplit[1]) == characters[i].getId()){
+                                    showColorBoard(characters[i].getId());
+                                }
+                            }
+                        } else {
+                            send("Wrong command, please use /remove followed by the number.");
                         }
+                        continue;
+
                     }
                     if (firstWordSplit[0].toUpperCase().equals("/TRY")) {
                         if (currentTurn!=CurrentTurn.ACTIVE){
-                            send("[Server:] Wait for your turn");
+                            send("[Server:] Wait for your turn.");
                             continue;
                         }
                         if (firstWordSplit.length == 1){
-                            send("Wrong command please use /try followed by the name");
+                            send("Wrong command, please use /try followed by the number.");
                             continue;
                         }
 
 
-                        if (firstWordSplit[1].toUpperCase().equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder().toUpperCase())){
-                            send("[Server:] Your guess "+firstWordSplit[1]+ " is correct.\n Congratulations " + name + ". You won the game");
-                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + ". You have lost the game");
+                        if (firstWordSplit[1].equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolderNumber())){
+                            send("[Server:] Your guess is correct.\n Congratulations " + name + "! You won the game ;P");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent won the game. Sorry! You have lost =(");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
                                 gameStart.players.get(i).in.close();
                                 gameStart.players.get(i).out.close();
@@ -138,8 +148,8 @@ public class PlayerServerHelper implements Runnable {
                             }
                             break;
                         }
-                        send("[Server:] Your guess "+firstWordSplit[1]+ " is incorrect. Keep trying.");
-                        gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried " +firstWordSplit[1] + " and failed. It's your turn now");
+                        send("[Server:] Your guess is incorrect. Keep trying.");
+                        gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent " + name + " tried to guess and failed. It's your turn now.");
                         currentTurn=CurrentTurn.WAITING;
                         gameStart.players.get(currentIndexPlayer==1?0:1).setCurrentTurn(CurrentTurn.ACTIVE);
                         continue;
@@ -174,12 +184,12 @@ public class PlayerServerHelper implements Runnable {
 
             out.println("Characters:");
             for (int i = 0; i < characters.length; i++) {
-                out.println((i + 1) + ": " + characters[i].getName());
+                out.println((i + 1) + characters[i].getName());
             }
 
-            int number = chooseCharacter();
-
-            nameHolder = characters[number - 1].getName();
+            nameHolderNumber = chooseCharacter();
+            nameHolder = characters[nameHolderNumber- 1].getName();
+            nameHolder = nameHolder.substring(1);
             out.println("You picked " + nameHolder + "."); //if change this print have to change also on the client class
             out.println("\n*****************************************\n");
             init = true;
@@ -212,24 +222,27 @@ public class PlayerServerHelper implements Runnable {
         System.out.print("\033[H\033[2J");
     }
 
-    public void showBoard(int Line){
+    public void showBoard(){
         clearScreen();
-        if(Line != 0) {
-            out.println("" + boardGame[0][0].getId() + ":" + boardGame[0][0].getName() + "    " + boardGame[0][1].getId() + ":" + boardGame[0][1].getName() + "     " + boardGame[0][2].getId() + ":" + boardGame[0][2].getName() + "     " + boardGame[0][3].getId() + ":" + boardGame[0][3].getName() + "     " + boardGame[0][4].getId() + ":" + boardGame[0][4].getName());
+        for(int Line = 0 ; Line < 5 ; Line++){
+            if(Line == 0) {
+                out.println("" + boardGame[Line][0].getIdString() + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getIdString() + boardGame[Line][1].getName() + "     " + boardGame[Line][2].getIdString() + boardGame[Line][2].getName() + "     " + boardGame[Line][3].getIdString() + boardGame[Line][3].getName() + "     " + boardGame[Line][4].getIdString() + boardGame[Line][4].getName());
+            }
+            if(Line == 1) {
+            out.println(" " + boardGame[Line][0].getIdString() + boardGame[Line][0].getName() + "     " + boardGame[Line][1].getIdString() + boardGame[Line][1].getName() + "     " + boardGame[Line][2].getIdString() + boardGame[Line][2].getName() + "   " + boardGame[Line][3].getIdString() + boardGame[Line][3].getName() + "   " + boardGame[Line][4].getIdString() + boardGame[Line][4].getName());
+            }
+            if(Line == 2) {
+                out.println(" " + boardGame[Line][0].getIdString() + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getIdString() + boardGame[Line][1].getName() + "    " + boardGame[Line][2].getIdString() + boardGame[Line][2].getName() + "    " + boardGame[Line][3].getIdString() + boardGame[Line][3].getName() + "     " + boardGame[Line][4].getIdString() + boardGame[Line][4].getName());
+            }
+            if(Line == 3){
+                out.println(" "+ boardGame[Line][0].getIdString() + boardGame[Line][0].getName()+"     " + boardGame[Line][1].getIdString() + boardGame[Line][1].getName()+"   " + boardGame[Line][2].getIdString() + boardGame[Line][2].getName()+"   " + boardGame[Line][3].getIdString() + boardGame[Line][3].getName()+"     " + boardGame[Line][4].getIdString() + boardGame[Line][4].getName());
+            }
+            if(Line == 4) {
+                out.println(" " + boardGame[Line][0].getIdString() + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getIdString() + boardGame[Line][1].getName() + "   " + boardGame[Line][2].getIdString() + boardGame[Line][2].getName() + "  " + boardGame[Line][3].getIdString() + boardGame[Line][3].getName() + "   " + boardGame[Line][4].getIdString() + boardGame[Line][4].getName());
+            }
+            drawCharacters(Line);
         }
-        if(Line != 1) {
-            out.println(" " + boardGame[1][0].getId() + ":" + boardGame[1][0].getName() + "     " + boardGame[1][1].getId() + ":" + boardGame[1][1].getName() + "     " + boardGame[1][2].getId() + ":" + boardGame[1][2].getName() + "   " + boardGame[1][3].getId() + ":" + boardGame[1][3].getName() + "   " + boardGame[1][4].getId() + ":" + boardGame[1][4].getName());
-        }
-        if(Line != 2) {
-            out.println(" " + boardGame[2][0].getId() + ":" + boardGame[2][0].getName() + "    " + boardGame[2][1].getId() + ":" + boardGame[2][1].getName() + "    " + boardGame[2][2].getId() + ":" + boardGame[2][2].getName() + "    " + boardGame[2][3].getId() + ":" + boardGame[2][3].getName() + "     " + boardGame[2][4].getId() + ":" + boardGame[2][4].getName());
-        }
-        if(Line != 3){
-            out.println(" "+ boardGame[3][0].getId() + ":"+ boardGame[3][0].getName()+"     " + boardGame[3][1].getId() + ":"+ boardGame[3][1].getName()+"   " + boardGame[3][2].getId() + ":"+ boardGame[3][2].getName()+"   " + boardGame[3][3].getId() + ":"+ boardGame[3][3].getName()+"     " + boardGame[3][4].getId() + ":"+ boardGame[3][4].getName());
-        }
-        if(Line != 4) {
-            out.println(" " + boardGame[4][0].getId() + ":" + boardGame[4][0].getName() + "    " + boardGame[4][1].getId() + ":" + boardGame[4][1].getName() + "   " + boardGame[4][2].getId() + ":" + boardGame[4][2].getName() + "  " + boardGame[4][3].getId() + ":" + boardGame[4][3].getName() + "   " + boardGame[4][4].getId() + ":" + boardGame[4][4].getName());
-        }
-        drawCharacters(Line);
+
     }
 
     public void drawCharacters(int line){
@@ -259,16 +272,14 @@ public class PlayerServerHelper implements Runnable {
     }
 
     public void showColorBoard(int id) {
-        clearScreen();
         for (int Line = 0; Line < 5; Line++) {
             for (int Column = 0; Column < 5; Column++) {
                 if (id == boardGame[Line][Column].getId()) {
                     boardGame[Line][Column].setSelected(true);
-                    colorName(Line,Column);
+                    boardGame[Line][Column].setRedName();
                 }
             }
-            showBoard(Line);
-            drawCharacters(Line);
+            showBoard();
         }
     }
 
@@ -280,25 +291,9 @@ public class PlayerServerHelper implements Runnable {
                 counter++;
             }
         }
-        for(int Line = 0 ; Line < 5 ; Line++){
-            if(Line == 0) {
-                out.println("" + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "     " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "     " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "     " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
-            }
-            if(Line == 1) {
-                out.println(" " + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "     " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "     " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "   " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "   " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
-            }
-            if(Line == 2) {
-                out.println(" " + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "    " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "    " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "     " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
-            }
-            if(Line == 3){
-                out.println(" "+ boardGame[Line][0].getId() + ":"+ boardGame[Line][0].getName()+"     " + boardGame[Line][1].getId() + ":"+ boardGame[Line][1].getName()+"   " + boardGame[Line][2].getId() + ":"+ boardGame[Line][2].getName()+"   " + boardGame[Line][3].getId() + ":"+ boardGame[Line][3].getName()+"     " + boardGame[Line][4].getId() + ":"+ boardGame[Line][4].getName());
-            }
-            if(Line == 4) {
-                out.println(" " + boardGame[Line][0].getId() + ":" + boardGame[Line][0].getName() + "    " + boardGame[Line][1].getId() + ":" + boardGame[Line][1].getName() + "   " + boardGame[Line][2].getId() + ":" + boardGame[Line][2].getName() + "  " + boardGame[Line][3].getId() + ":" + boardGame[Line][3].getName() + "   " + boardGame[Line][4].getId() + ":" + boardGame[Line][4].getName());
-            }
-            drawCharacters(Line);
-        }
+        showBoard();
     }
+
 
     public void setGameStart(Server.GameStart gameStart) {
         this.gameStart = gameStart;
@@ -328,104 +323,7 @@ public class PlayerServerHelper implements Runnable {
         this.currentTurn = currentTurn;
     }
 
-    public String getNameHolder() {
-        return nameHolder;
-    }
-
-
-
-
-
-    public void colorName(int line, int col){
-
-        switch (col){
-            case 0:
-                if(line == 0) {
-                    out.println("" + ANSI_RED + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + ANSI_RESET + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "     " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 1) {
-                    out.println(" " +ANSI_RED + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + ANSI_RESET +"     " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "   " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 2) {
-                    out.println(" " +ANSI_RED + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + ANSI_RESET +"    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "    " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "    " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 3){
-                    out.println(" "+ ANSI_RED +boardGame[line][0].getId() + ":"+ boardGame[line][0].getName()+ANSI_RESET +"     " + boardGame[line][1].getId() + ":"+ boardGame[line][1].getName()+"   " + boardGame[line][2].getId() + ":"+ boardGame[line][2].getName()+"   " + boardGame[line][3].getId() + ":"+ boardGame[line][3].getName()+"     " + boardGame[line][4].getId() + ":"+ boardGame[line][4].getName());
-                }
-                if(line == 4) {
-                    out.println(" " + ANSI_RED +boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + ANSI_RESET +"    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "   " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "  " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                break;
-            case 1:
-                if(line == 0) {
-                    out.println("" + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " +ANSI_RED + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() +ANSI_RESET + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "     " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 1) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "     " +ANSI_RED + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + ANSI_RESET +"     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "   " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 2) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + ANSI_RED +boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + ANSI_RESET +"    " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "    " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 3){
-                    out.println(" "+ boardGame[line][0].getId() + ":"+ boardGame[line][0].getName()+"     " + ANSI_RED +boardGame[line][1].getId() + ":"+ boardGame[line][1].getName()+ANSI_RESET +"   " + boardGame[line][2].getId() + ":"+ boardGame[line][2].getName()+"   " + boardGame[line][3].getId() + ":"+ boardGame[line][3].getName()+"     " + boardGame[line][4].getId() + ":"+ boardGame[line][4].getName());
-                }
-                if(line == 4) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + ANSI_RED +boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + ANSI_RESET +"   " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "  " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                break;
-            case 2:
-                if(line == 0) {
-                    out.println("" +  boardGame[line][0].getId() + ":" + boardGame[line][0].getName() +  "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " +ANSI_RED + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + ANSI_RESET +"     " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 1) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "     " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " +ANSI_RED + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + ANSI_RESET +"   " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 2) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "    " +ANSI_RED + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + ANSI_RESET +"    " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 3){
-                    out.println(" "+ boardGame[line][0].getId() + ":"+ boardGame[line][0].getName()+"     " + boardGame[line][1].getId() + ":"+ boardGame[line][1].getName()+"   " + ANSI_RED +boardGame[line][2].getId() + ":"+ boardGame[line][2].getName()+ANSI_RESET +"   " + boardGame[line][3].getId() + ":"+ boardGame[line][3].getName()+"     " + boardGame[line][4].getId() + ":"+ boardGame[line][4].getName());
-                }
-                if(line == 4) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "   " +ANSI_RED + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + ANSI_RESET +"  " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                break;
-            case 3:
-                if(line == 0) {
-                    out.println("" +  boardGame[line][0].getId() + ":" + boardGame[line][0].getName() +  "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "     " + ANSI_RED +boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + ANSI_RESET +"     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 1) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "     " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "   " + ANSI_RED +boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + ANSI_RESET +"   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 2) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "    " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "    " + ANSI_RED +boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + ANSI_RESET +"     " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                if(line == 3){
-                    out.println(" "+ boardGame[line][0].getId() + ":"+ boardGame[line][0].getName()+"     " + boardGame[line][1].getId() + ":"+ boardGame[line][1].getName()+"   " + boardGame[line][2].getId() + ":"+ boardGame[line][2].getName()+"   " +ANSI_RED + boardGame[line][3].getId() + ":"+ boardGame[line][3].getName()+ANSI_RESET +"     " + boardGame[line][4].getId() + ":"+ boardGame[line][4].getName());
-                }
-                if(line == 4) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "   " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "  " + ANSI_RED +boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + ANSI_RESET +"   " + boardGame[line][4].getId() + ":" + boardGame[line][4].getName());
-                }
-                break;
-            case 4:
-                if(line == 0) {
-                    out.println("" + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "     " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + ANSI_RED +boardGame[line][4].getId() + ":" + boardGame[line][4].getName()+ANSI_RESET);
-                }
-                if(line == 1) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "     " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "     " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "   " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " + ANSI_RED +boardGame[line][4].getId() + ":" + boardGame[line][4].getName()+ANSI_RESET);
-                }
-                if(line == 2) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "    " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "    " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "     " + ANSI_RED +boardGame[line][4].getId() + ":" + boardGame[line][4].getName()+ANSI_RESET);
-                }
-                if(line == 3){
-                    out.println(" "+ boardGame[line][0].getId() + ":"+ boardGame[line][0].getName()+"     " + boardGame[line][1].getId() + ":"+ boardGame[line][1].getName()+"   " + boardGame[line][2].getId() + ":"+ boardGame[line][2].getName()+"   " + boardGame[line][3].getId() + ":"+ boardGame[line][3].getName()+"     " + ANSI_RED +boardGame[line][4].getId() + ":"+ boardGame[line][4].getName()+ANSI_RESET);
-                }
-                if(line == 4) {
-                    out.println(" " + boardGame[line][0].getId() + ":" + boardGame[line][0].getName() + "    " + boardGame[line][1].getId() + ":" + boardGame[line][1].getName() + "   " + boardGame[line][2].getId() + ":" + boardGame[line][2].getName() + "  " + boardGame[line][3].getId() + ":" + boardGame[line][3].getName() + "   " +ANSI_RED + boardGame[line][4].getId() + ":" + boardGame[line][4].getName()+ANSI_RESET);
-                }
-                break;
-            default:
-                break;
-        }
+    public int getNameHolderNumber() {
+        return nameHolderNumber-1;
     }
 }

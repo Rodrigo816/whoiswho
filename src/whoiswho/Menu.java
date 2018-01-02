@@ -1,6 +1,9 @@
 package whoiswho;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Menu {
     private PlayerServerHelper toMenu;
     private boolean startGame = false;
@@ -42,25 +45,33 @@ public class Menu {
         toMenu.getOut().println("============================");
         toMenu.getOut().println(" Select option: ");
 
-        int selection = Integer.parseInt(toMenu.getIn().readLine());
-
-        switch (selection) {
-            case 1:
-                gameStarted();
-                break;
-            case 2:
-                instructions();
-                break;
-            case 3:
-                credits();
-                break;
-            case 4:
-                exit();
-                break;
-            default:
-                toMenu.getOut().println(" Invalid option ");
-                break;
+        Pattern p = Pattern.compile("[1-4]+"); //only accept numbers
+        String selection = toMenu.getIn().readLine();
+        Matcher m = p.matcher(selection);
+        if (m.matches()) {
+            int option = Integer.parseInt(selection);
+            switch (option) {
+                case 1:
+                    gameStarted();
+                    break;
+                case 2:
+                    instructions();
+                    break;
+                case 3:
+                    credits();
+                    break;
+                case 4:
+                    exit();
+                    break;
+                default:
+                    toMenu.getOut().println(" Invalid option ");
+                    break;
+            }
         }
+        else{
+            toMenu.getOut().println(" Invalid option ");
+        }
+
     }
 
     public void gameStarted(){
@@ -81,6 +92,10 @@ public class Menu {
         toMenu.getOut().println("|2. Question your opponent |");
         toMenu.getOut().println("|3. Try to guess his       |");
         toMenu.getOut().println("|4. The first to guess wins|");
+        toMenu.getOut().println("|Use /ask to question      |");
+        toMenu.getOut().println("|Use /yes or /no to answer |");
+        toMenu.getOut().println("|Use /remove to delete     |");
+        toMenu.getOut().println("|And use /try to guess     |");
         toMenu.getOut().println("============================");
         menuBack();
     }
