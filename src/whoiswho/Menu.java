@@ -45,7 +45,7 @@ public class Menu {
         toMenu.getOut().println("============================");
         toMenu.getOut().println(" Select option: ");
 
-        Pattern p = Pattern.compile("[1-4]+"); //only accept numbers
+        Pattern p = Pattern.compile("[1-4]"); //only accept numbers
         String selection = toMenu.getIn().readLine();
         Matcher m = p.matcher(selection);
         if (m.matches()) {
@@ -126,7 +126,16 @@ public class Menu {
         menuInit: while(true){
             toMenu.getOut().println(" Press 0 to return to the menu: ");
 
-                int back = Integer.parseInt(toMenu.getIn().readLine());
+            String line = toMenu.getIn().readLine();
+
+            Pattern p = Pattern.compile("[0-9]+"); //only accept numbers
+            Matcher m = p.matcher(line);
+            if (!m.matches()) {
+                toMenu.getOut().println(" Invalid option ");
+                continue;
+            }
+
+                int back = Integer.parseInt(line);
                 switch(back){
                     case 0:
                         toMenu.getOut().println(" Returning to the menu... ");

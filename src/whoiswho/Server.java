@@ -71,7 +71,7 @@ public class Server {
         @Override
         public void run() {
 
-            System.out.println("Two players connected and ready to start a game.");
+            System.out.println("Two players connected and ready to start a game");
             for (int i = 0; i < players.size(); i++) {
                 players.get(i).setGameStart(this);
                 fixedPool.submit(players.get(i));

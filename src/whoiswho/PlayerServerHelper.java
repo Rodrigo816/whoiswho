@@ -143,9 +143,10 @@ public class PlayerServerHelper implements Runnable {
                             continue;
                         }
 
-                        if (firstWordSplit[1].equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolderNumber())){
+                        int num = Integer.parseInt(firstWordSplit[1]);
+                        if (num == gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolderNumber()){
                             send("[Server:] Your guess is correct.\n Congratulations " + name + "! You won the game ;P");
-                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent won the game. Sorry! You have lost =(");
+                            gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent tried " + gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder() + " and won the game. Sorry! You have lost :(");
                             for (int i = 0; i <gameStart.players.size() ; i++) {
                                 gameStart.players.get(i).in.close();
                                 gameStart.players.get(i).out.close();
@@ -329,6 +330,10 @@ public class PlayerServerHelper implements Runnable {
     }
 
     public int getNameHolderNumber() {
-        return nameHolderNumber-1;
+        return nameHolderNumber;
+    }
+
+    public String getNameHolder() {
+        return nameHolder;
     }
 }
