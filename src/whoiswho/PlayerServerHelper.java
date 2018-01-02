@@ -225,7 +225,7 @@ public class PlayerServerHelper implements Runnable {
     }
 
     private void clearScreen(){
-        System.out.print("\033[H\033[2J");
+        out.println("\033[H\033[2J");
     }
 
     public void showBoard(){
