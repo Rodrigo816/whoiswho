@@ -265,7 +265,6 @@ public class PlayerServerHelper implements Runnable {
                 if (id == boardGame[Line][Column].getId()) {
                     boardGame[Line][Column].setSelected(true);
                     colorName(Line,Column);
-                    continue;
                 }
             }
             showBoard(Line);
