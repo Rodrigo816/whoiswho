@@ -136,7 +136,12 @@ public class PlayerServerHelper implements Runnable {
                             send("Wrong command, please use /try followed by the number.");
                             continue;
                         }
-
+                        Pattern p = Pattern.compile("[0-9]+"); //only accept numbers
+                        Matcher m = p.matcher(firstWordSplit[1]);
+                        if (!m.matches()) {
+                            send("Wrong command, please use /try followed by the number.");
+                            continue;
+                        }
 
                         if (firstWordSplit[1].equals(gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolderNumber())){
                             send("[Server:] Your guess is correct.\n Congratulations " + name + "! You won the game ;P");
