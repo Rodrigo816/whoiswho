@@ -14,7 +14,6 @@ public class PlayerServerHelper implements Runnable {
                                     "Ferrão", "Sérgio", "Catarina", "Faustino", "Audrey"};
     private Characters[] characters = new Characters[names.length];
     private Characters[][] boardGame;
-    private Menu menu;
     private String nameHolder;
     private boolean init = false;
     private BufferedReader in;
@@ -34,22 +33,11 @@ public class PlayerServerHelper implements Runnable {
         for (int i = 0; i < characters.length; i++) {
             characters[i] = new Characters(names[i],i+1);
         }
-        menu = new Menu(this);
         boardGame = new Characters[5][5];
     }
 
     @Override
     public void run() {
-
-        getMenu().initialScreen();
-        try {
-            while(!getMenu().isStartGame()) {
-                clearScreen();
-                getMenu().menuInit();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         playerInfo();
 
@@ -59,7 +47,7 @@ public class PlayerServerHelper implements Runnable {
             int currentIndexPlayer = gameStart.players.indexOf(this);
             int counter = 0;
 
-            while (true){
+            while (!socket.isClosed()){
 
                 if(gameStart.players.get(0).isInit() && gameStart.players.get(1).isInit()){
 
@@ -145,13 +133,20 @@ public class PlayerServerHelper implements Runnable {
 
                         int num = Integer.parseInt(firstWordSplit[1]);
                         if (num == gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolderNumber()){
-                            send("[Server:] Your guess is correct.\n Congratulations " + name + "! You won the game ;P");
+                            send("");
+                            send("'|| '||'  '|' '||' '|.   '|' '|.   '|' '||''''|  '||''|.");
+                            send(" '|. '|.  .'   ||   |'|   |   |'|   |   ||  .     ||   ||");
+                            send("  ||  ||  |    ||   | '|. |   | '|. |   ||''|     ||''|'");
+                            send("   ||| |||     ||   |   |||   |   |||   ||        ||   |.");
+                            send("    |   |     .||. .|.   '|  .|.   '|  .||.....| .||.  '|'");
+                            send("");
+
+                            send("[Server:] Your guess is correct. Congratulations " + name + "! You won the game.");
                             gameStart.players.get(currentIndexPlayer==1?0:1).send("[Server:] Your opponent tried " + gameStart.players.get(currentIndexPlayer==1?0:1).getNameHolder() + " and won the game. Sorry! You have lost :(");
-                            for (int i = 0; i <gameStart.players.size() ; i++) {
-                                gameStart.players.get(i).in.close();
-                                gameStart.players.get(i).out.close();
-                                gameStart.players.get(i).socket.close();
-                            }
+
+                            in.close();
+                            out.close();
+
                             break;
                         }
                         send("[Server:] Your guess is incorrect. Keep trying.");
@@ -225,7 +220,7 @@ public class PlayerServerHelper implements Runnable {
     }
 
     private void clearScreen(){
-        System.out.print("\033[H\033[2J");
+        out.print("\033[H\033[2J");
     }
 
     public void showBoard(){
@@ -319,10 +314,6 @@ public class PlayerServerHelper implements Runnable {
 
     public BufferedReader getIn() {
         return in;
-    }
-
-    public Menu getMenu() {
-        return menu;
     }
 
     public void setCurrentTurn(CurrentTurn currentTurn) {
