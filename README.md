@@ -1,6 +1,6 @@
 # Guess Who is Who?
 
-![alt text](https://imgur.com/km1JdZ7)
+![alt text](https://i.imgur.com/km1JdZ7.png)
 
 This little Game was created during Christmas week at <Academia de Código_>.
 
